@@ -27,3 +27,15 @@ steps:
     GithubToken: $(GithubToken)
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
 
+- task: PublishTestResults@2
+  displayName: 'Publish Test Results **/PesterResult.XML'
+  inputs:
+    testResultsFormat: NUnit
+    testResultsFiles: '**/PesterResult.XML'
+  condition: succeededOrFailed()
+
+- task: PublishCodeCoverageResults@1
+  displayName: 'Publish code coverage from $(System.DefaultWorkingDirectory)\tests.XML'
+  inputs:
+    summaryFileLocation: '$(System.DefaultWorkingDirectory)\PesterCoverage.XML'
+  condition: succeededOrFailed()
