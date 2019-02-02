@@ -12,4 +12,5 @@
     }
     PlatyPS = 'Latest'
     PSScriptAnalyzer = 'Latest'
+    PSake = 'Latest'
 }
