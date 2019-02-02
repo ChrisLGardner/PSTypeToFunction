@@ -14,12 +14,14 @@ steps:
   inputs:
     preferBundledVersion: false
 
-- powershell: build.ps1 -task test
+- powershell: .\build.ps1 -task test
   displayName: 'Build and Test module'
+  workingDirectory: $(System.DefaultWorkingDirectory)
   condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
 
-- powershell: build.ps1 -task publish
+- powershell: .\build.ps1 -task publish
   displayName: 'Build, Test, and Publish module'
+  workingDirectory: $(System.DefaultWorkingDirectory)
   env:
     NugetApiKey: $(NugetApiKey)
     GithubToken: $(GithubToken)
