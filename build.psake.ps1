@@ -87,12 +87,6 @@ Task Init -requiredVariables OutDir {
     else {
         Write-Verbose "$($psake.context.currentTaskName) - directory already exists '$OutDir'."
     }
-
-    if (-not (Get-Module PSdepend -List)) {
-        Install-Module -Name PSDepend -Scope CurrentUser -Force -Confirm:$false
-    }
-
-    Invoke-PSDepend -Force -Confirm:$false
 }
 
 Task Clean -depends Init -requiredVariables OutDir {
@@ -430,6 +424,7 @@ Task Test -depends Build, AfterBuild, Analyze -requiredVariables TestRootDir, Mo
         # To control the Pester code coverage, a boolean $CodeCoverageEnabled is used.
         if ($CodeCoverageEnabled) {
             $testing.CodeCoverage = $CodeCoverageFiles
+            $testing.CodeCoverageOutputFile = $CodeCoverageOutput
         }
 
         $testResult = Invoke-Pester @testing
@@ -451,36 +446,19 @@ Task Test -depends Build, AfterBuild, Analyze -requiredVariables TestRootDir, Mo
 }
 
 Task Publish -depends Build, Test, BuildHelp, GenerateFileCatalog, BeforePublish, CorePublish, AfterPublish {
+    git tag $Env:GitVersion_MajorMinorPatch
+    git push --tags "https://$($Env:GithubToken)@github.com/chrislgardner/$ModuleName"
 }
 
-Task CorePublish -requiredVariables SettingsPath, ModuleOutDir {
-    $publishParams = @{
-        Path = $ModuleOutDir
-        NuGetApiKey = $NuGetApiKey
-    }
+Task CorePublish -requiredVariables SettingsPath, ModuleOutDir, ModuleName {
 
-    # Publishing to the PSGallery requires an API key, so get it.
-    if ($NuGetApiKey) {
-        "Using script embedded NuGetApiKey"
-    }
-    elseif ($NuGetApiKey = GetSetting -Path $SettingsPath -Key NuGetApiKey) {
-        "Using stored NuGetApiKey"
-    }
-    else {
-        $promptForKeyCredParams = @{
-            DestinationPath = $SettingsPath
-            Message = 'Enter your NuGet API key in the password field'
-            Key = 'NuGetApiKey'
-        }
-
-        $cred = PromptUserForCredentialAndStorePassword @promptForKeyCredParams
-        $NuGetApiKey = $cred.GetNetworkCredential().Password
-        "The NuGetApiKey has been stored in $SettingsPath"
+    if ($Env:Build_SourceBranch	-eq 'refs/heads/master') {
+        Update-Metadata -Path "$ModuleOutDir\$ModuleName.psd1" -PropertyName ModuleVersion -Value $Env:GitVersion_MajorMinorPatch
     }
 
     $publishParams = @{
         Path = $ModuleOutDir
-        NuGetApiKey = $NuGetApiKey
+        NuGetApiKey = $Env:NuGetApiKey
     }
 
     # If an alternate repository is specified, set the appropriate parameter.

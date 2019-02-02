@@ -105,6 +105,8 @@ Properties {
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
     $CodeCoverageFiles = "$OutDir\$ModuleName\*.psm1"
 
+    [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
+    $CodeCoverageOutput = "$PSScriptRoot\PesterCoverage.xml"
     # -------------------- Publishing properties ------------------------------
 
     # Your NuGet API key for the PSGallery.  Leave it as $null and the first time you publish,
@@ -134,7 +136,7 @@ Properties {
     # This is typically used to write out test results so that they can be sent to a CI
     # system like AppVeyor.
     [System.Diagnostics.CodeAnalysis.SuppressMessage('PSUseDeclaredVarsMoreThanAssigments', '')]
-    $TestOutputFile = $null
+    $TestOutputFile = "$PSScriptRoot\PesterResult.xml"
 
     # Specifies the test output format to use when the TestOutputFile property is given
     # a path.  This parameter is passed through to Invoke-Pester's -OutputFormat parameter.
