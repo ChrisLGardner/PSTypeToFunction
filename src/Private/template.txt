@@ -1,12 +1,18 @@
 function --name-- {
-    <#
-    --help--
-    #>
+
     [CmdletBinding(SupportsShouldProcess, ConfirmImpact = '--confirmimpact--')]
     param (
-        --params--
+--params--
     )
     process {
-        --process--
+        if ($Pscmdlet.ShouldProcess("Creating new object --fullname--")) {
+            try {
+            $object = New-Object -TypeName --fullname--
+            --process--
+            }
+            catch {
+                throw $_
+            }
+        }
     }
 }

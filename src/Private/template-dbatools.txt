@@ -46,7 +46,7 @@ function --name-- {
     param (
         [DbaInstanceParameter[]]$SqlInstance,
         [PSCredential]$SqlCredential,
-        --params--,
+    --params--,
         [switch]$EnableException
     )
     process {

@@ -1,33 +1,78 @@
 Function New-FunctionFromType {
+    <#
+.SYNOPSIS
+Short description
+
+.DESCRIPTION
+Long description
+
+.PARAMETER Verb
+Parameter description
+
+.PARAMETER Path
+Parameter description
+
+.PARAMETER TypeName
+Parameter description
+
+.PARAMETER InputObject
+Parameter description
+
+.PARAMETER Template
+Parameter description
+
+.PARAMETER ConfirmImpact
+Parameter description
+
+.PARAMETER Prefix
+Parameter description
+
+.PARAMETER Passthru
+Parameter description
+
+.PARAMETER ExcludeProperty
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+#>
+
     [cmdletbinding(DefaultParameterSetName = 'TypeName')]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
     param (
         [ValidateSet('All', 'New', 'Remove', 'Get', 'Set')]
-        [string[]]$Verb = "All",
-        [string]$Path = $PWD,
+        [String[]]$Verb = "All",
+        [String]$Path = $PWD,
         [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'TypeName')]
         [String]$TypeName,
         [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Object')]
         [Object]$InputObject,
-        [string]$Template = "Default",
+        [String]$Template = "Default",
         [ValidateSet("Low", "Medium", "High")]
-        [string]$ConfirmImpact = "Low",
-        [String]$Prefix
+        [String]$ConfirmImpact = "Low",
+        [String]$Prefix,
+        [Switch]$Passthru,
+        [String[]]$ExcludeProperty
     )
 
     begin {
-        if ($Type -eq "All") {
-            $Type = "New", "Remove", "Get", "Set"
+        if ($Verb -eq "All") {
+            $Verb = "New", "Remove", "Get", "Set"
         }
 
         if ($Template -eq "Default") {
-            $Template = "$script:PSModuleRoot\Private\template.txt"
+            $Template = Resolve-Path -Path "$script:PSModuleRoot\Private\template.txt"
         }
         elseif ($Template -eq "dbatools") {
-            $Template = "$script:PSModuleRoot\Private\template-dbatools.txt"
+            $Template = Resolve-Path -Path "$script:PSModuleRoot\Private\template-dbatools.txt"
         }
         else {
-
+            if (-not (Test-Path -Path $Template)) {
+                throw "Can't find $Template"
+            }
         }
     }
     process {
@@ -40,8 +85,17 @@ Function New-FunctionFromType {
             ($TypeName -as [Type]).GetFields()     | Where-Object { -not $_.Attributes.HasFlag([System.Reflection.FieldAttributes]::InitOnly) }
         )
 
-        foreach ($v in $verb) {
-            $name = "$v-$Prefix" + $TypeName
+        if ($ExcludeProperty) {
+            $properties = $properties | Where-Object Name -notin $ExcludeProperty
+        }
+
+        foreach ($verbname in $Verb) {
+            $text = Get-Content -Path $Template
+            $shortname = ($TypeName -split "\.")[-1]
+            $name = "$verbname-$Prefix" + $shortname
+            $text = $text.Replace("--name--", $name)
+            $text = $text.Replace("--confirmimpact--", $ConfirmImpact)
+            $params = $help = $process = @()
             $filename = "$Path\$name.ps1"
 
             foreach ($Property in $Properties) {
@@ -51,14 +105,22 @@ Function New-FunctionFromType {
                 else {
                     $type = $Property.PropertyType.FullName
                 }
-                Add-String -String "     [{0}]`${1},`n`n" -f $type, $Property.Name
+                $params += "     [{0}]`${1}" -f $type, $Property.Name
+                $help += "    .PARAMETER $($Property.Name)`n`n    `n`n"
+                $process += "`$object.$($Property.Name) = `$$($Property.Name)"
             }
 
+            $text = $text.Replace("--params--", ($params -join ",`n"))
+            $text = $text.Replace("--help--", $help)
+            $text = $text.Replace("--process--", ($process -join "`n"))
+            $text = $text.Replace("--fullname--", $TypeName)
+
             if ($Passthru) {
-                $FunctionDefinition
+                $text
             }
             else {
-                $FunctionDefinition | Set-Content -Path $filename
+                $text | Set-Content -Path $filename
+                Get-ChildItem $filename
             }
         }
     }
