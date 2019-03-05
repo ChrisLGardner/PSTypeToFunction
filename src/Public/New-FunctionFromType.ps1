@@ -1,53 +1,52 @@
 Function New-FunctionFromType {
     <#
-.SYNOPSIS
-Converts .NET types into PowerShell commands
+    .SYNOPSIS
+    Converts .NET types into PowerShell commands
 
-.DESCRIPTION
-Converts .NET types into PowerShell commands
+    .DESCRIPTION
+    Converts .NET types into PowerShell commands
 
-.PARAMETER Verb
-The verb to be generated. "All" by default. Options include All, New, Get, Set, and Remove.
+    .PARAMETER Verb
+    The verb to be generated. "All" by default. Options include All, New, Get, Set, and Remove.
 
-.PARAMETER Path
-The Path to the directory where the commands will be created. Present working directory by default.
+    .PARAMETER Path
+    The Path to the directory where the commands will be created. Present working directory by default.
 
-.PARAMETER TypeName
-The full name of the .NET type
+    .PARAMETER TypeName
+    The full name of the .NET type
 
-.PARAMETER InputObject
-Accepts [Type] input
+    .PARAMETER InputObject
+    Accepts [Type] input
 
-.PARAMETER Template
-The template to use. Uses a default template by default. To use the dbatools template, specify dbatools.
+    .PARAMETER Template
+    The template to use. Uses a default template by default. To use the dbatools template, specify dbatools.
 
-.PARAMETER ConfirmImpact
-The confirmation impact. Low by default. Options include Low, Medium and High.
+    .PARAMETER ConfirmImpact
+    The confirmation impact. Low by default. Options include Low, Medium and High.
 
-.PARAMETER Prefix
-If your module uses a prefix (like Dba, Sql, Az, etc), use this Prefix.
+    .PARAMETER Prefix
+    If your module uses a prefix (like Dba, Sql, Az, etc), use this Prefix.
 
-.PARAMETER Passthru
-Output code to console instead of writing to disk.
+    .PARAMETER Passthru
+    Output code to console instead of writing to disk.
 
-.PARAMETER ExcludeProperty
-Exclude properties you don't want.
+    .PARAMETER ExcludeProperty
+    Exclude properties you don't want.
 
-.EXAMPLE
- PS> New-FunctionFromType -TypeName Bogus.Data
+    .EXAMPLE
+    PS> New-FunctionFromType -TypeName Bogus.Data
 
- Generates 4 new files: New-Data, Get-Data, Set-Data, Remove-Data.
+    Generates 4 new files: New-Data, Get-Data, Set-Data, Remove-Data.
 
- .EXAMPLE
- PS> New-FunctionFromType -TypeName Bogus.Data -Verb New
+    .EXAMPLE
+    PS> New-FunctionFromType -TypeName Bogus.Data -Verb New
 
- Generates one new file: New-Data with ConfirImpact of low.
+    Generates one new file: New-Data with ConfirImpact of low.
 
+    .EXAMPLE
+    PS> New-FunctionFromType -TypeName Microsoft.SqlServer.Management.Smo.Mail.MailProfile -Prefix Dba -ExcludeProperty UserData -Path C:\temp\mail -ConfirmImpact High -Template dbatools
 
-.EXAMPLE
- PS> New-FunctionFromType -TypeName Microsoft.SqlServer.Management.Smo.Mail.MailProfile -Prefix Dba -ExcludeProperty UserData -Path C:\temp\mail -ConfirmImpact High -Template dbatools
-
- Generates 4 new files: New-DbaMailProfile, Get-DbaMailProfile, Set-DbaMailProfile, Remove-DbaMailProfile in C:\temp\mail. Excludes UserData and Parent.
+    Generates 4 new files: New-DbaMailProfile, Get-DbaMailProfile, Set-DbaMailProfile, Remove-DbaMailProfile in C:\temp\mail. Excludes UserData and Parent.
 
  #>
 
