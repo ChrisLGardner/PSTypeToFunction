@@ -34,11 +34,16 @@ Output code to console instead of writing to disk.
 Exclude properties you don't want.
 
 .EXAMPLE
- PS> New-FunctionFromType -TypeName Microsoft.SqlServer.Management.Smo.Mail.MailProfile -Prefix Dba -ExcludeProperty UserData, Parent
+ PS> New-FunctionFromType -TypeName Bogus.Data
 
- Generates 4 new files: New-DbaMailProfile, Get-DbaMailProfile, Set-DbaMailProfile, Remove-DbaMailProfile. Excludes UserData and Parent.
+ Generates 4 new files: New-Data, Get-Data, Set-Data, Remove-Data.
 
-#>
+.EXAMPLE
+ PS> New-FunctionFromType -TypeName Microsoft.SqlServer.Management.Smo.Mail.MailProfile -Prefix Dba -ExcludeProperty UserData -Path C:\temp\mail -ConfirmImpact High -Template dbatools
+
+ Generates 4 new files: New-DbaMailProfile, Get-DbaMailProfile, Set-DbaMailProfile, Remove-DbaMailProfile in C:\temp\mail. Excludes UserData and Parent.
+
+ #>
 
     [cmdletbinding(DefaultParameterSetName = 'TypeName')]
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
@@ -102,15 +107,28 @@ Exclude properties you don't want.
             $filename = "$Path\$name.ps1"
 
             foreach ($Property in $Properties) {
+                $propertyname = $Property.Name
+                if ($propertyname -eq "Parent") {
+                    $propertyname = "InputObject"
+                }
                 if ($Property.PropertyType.Name -as [Type]) {
                     $type = $Property.PropertyType.Name
                 }
                 else {
                     $type = $Property.PropertyType.FullName
                 }
-                $params += "     [{0}]`${1}" -f $type, $Property.Name
-                $help += "    .PARAMETER $($Property.Name)`n`n    `n`n"
-                $process += "`$object.$($Property.Name) = `$$($Property.Name)"
+                if ($type -eq "Boolean") {
+                    $type = "Switch"
+                }
+
+                if ($propertyname -ne "InputObject") {
+                    $params += "     [{0}]`${1}" -f $type, $propertyname
+                }
+                else {
+                    $params += "     [parameter(ValueFromPipeline)]`n    [{0}]`${1}" -f $type, $propertyname
+                }
+                $help += "    .PARAMETER $($propertyname)`n`n    `n"
+                $process += "`$object.$($propertyname) = `$$($propertyname)"
             }
 
             $text = $text.Replace("--params--", ($params -join ",`n"))
