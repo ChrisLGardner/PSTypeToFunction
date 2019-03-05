@@ -38,6 +38,12 @@ Exclude properties you don't want.
 
  Generates 4 new files: New-Data, Get-Data, Set-Data, Remove-Data.
 
+ .EXAMPLE
+ PS> New-FunctionFromType -TypeName Bogus.Data -Verb New
+
+ Generates one new file: New-Data with ConfirImpact of low.
+
+
 .EXAMPLE
  PS> New-FunctionFromType -TypeName Microsoft.SqlServer.Management.Smo.Mail.MailProfile -Prefix Dba -ExcludeProperty UserData -Path C:\temp\mail -ConfirmImpact High -Template dbatools
 
