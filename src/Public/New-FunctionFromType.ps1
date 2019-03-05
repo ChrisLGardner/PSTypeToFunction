@@ -1,43 +1,43 @@
 Function New-FunctionFromType {
     <#
 .SYNOPSIS
-Short description
+Converts .NET types into PowerShell commands
 
 .DESCRIPTION
-Long description
+Converts .NET types into PowerShell commands
 
 .PARAMETER Verb
-Parameter description
+The verb to be generated. "All" by default. Options include All, New, Get, Set, and Remove.
 
 .PARAMETER Path
-Parameter description
+The Path to the directory where the commands will be created. Present working directory by default.
 
 .PARAMETER TypeName
-Parameter description
+The full name of the .NET type
 
 .PARAMETER InputObject
-Parameter description
+Accepts [Type] input
 
 .PARAMETER Template
-Parameter description
+The template to use. Uses a default template by default. To use the dbatools template, specify dbatools.
 
 .PARAMETER ConfirmImpact
-Parameter description
+The confirmation impact. Low by default. Options include Low, Medium and High.
 
 .PARAMETER Prefix
-Parameter description
+If your module uses a prefix (like Dba, Sql, Az, etc), use this Prefix.
 
 .PARAMETER Passthru
-Parameter description
+Output code to console instead of writing to disk.
 
 .PARAMETER ExcludeProperty
-Parameter description
+Exclude properties you don't want.
 
 .EXAMPLE
-An example
+ PS> New-FunctionFromType -TypeName Microsoft.SqlServer.Management.Smo.Mail.MailProfile -Prefix Dba -ExcludeProperty UserData, Parent
 
-.NOTES
-General notes
+ Generates 4 new files: New-DbaMailProfile, Get-DbaMailProfile, Set-DbaMailProfile, Remove-DbaMailProfile. Excludes UserData and Parent.
+
 #>
 
     [cmdletbinding(DefaultParameterSetName = 'TypeName')]
