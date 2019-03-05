@@ -3,7 +3,7 @@ Function New-FunctionFromType {
     [Diagnostics.CodeAnalysis.SuppressMessageAttribute("PSUseShouldProcessForStateChangingFunctions", "")]
     param (
         [ValidateSet('All', 'New', 'Remove', 'Get', 'Set')]
-        [string[]]$Type = "All",
+        [string[]]$Verb = "All",
         [string]$Path = $PWD,
         [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'TypeName')]
         [String]$TypeName,
@@ -11,21 +11,11 @@ Function New-FunctionFromType {
         [Object]$InputObject,
         [string]$Template = "Default",
         [ValidateSet("Low", "Medium", "High")]
-        [string]$ConfirmImpact = "Low"
+        [string]$ConfirmImpact = "Low",
+        [String]$Prefix
     )
 
     begin {
-        function Add-String {
-            [cmdletbinding()]
-            param(
-                [string[]]$String,
-                [switch]$Fresh
-            )
-            if ($Fresh -or -not $sb) {
-                $sb = New-Object -TypeName System.Text.StringBuilder
-            }
-            $sb.Append($String)
-        }
         if ($Type -eq "All") {
             $Type = "New", "Remove", "Get", "Set"
         }
@@ -41,28 +31,19 @@ Function New-FunctionFromType {
         }
     }
     process {
-        if ($PSCmdlet.ParameterSetName -eq 'TypeName') {
-            $Properties = @(
-                ($TypeName -as [Type]).GetProperties() | Where-Object { $_.CanWrite }
-                ($TypeName -as [Type]).GetFields()     | Where-Object { -not $_.Attributes.HasFlag([System.Reflection.FieldAttributes]::InitOnly) }
-            )
-        }
-        else {
-            $Properties = @(
-                $InputObject.GetProperties() | Where-Object { $_.CanWrite }
-                $InputObject.GetFields()     | Where-Object { -not $_.Attributes.HasFlag([System.Reflection.FieldAttributes]::InitOnly) }
-            )
+        if ($PSCmdlet.ParameterSetName -ne 'TypeName') {
+            $TypeName = $InputObject.GetType().Name
         }
 
-        foreach ($typename in $Type) {
-            Add-String -Fresh -String "Function $Name {
-    <#"
+        $properties = @(
+            ($TypeName -as [Type]).GetProperties() | Where-Object { $_.CanWrite }
+            ($TypeName -as [Type]).GetFields()     | Where-Object { -not $_.Attributes.HasFlag([System.Reflection.FieldAttributes]::InitOnly) }
+        )
 
-            Add-String -String "
-#>
-    [CmdletBinding()]
-    param (
- "
+        foreach ($v in $verb) {
+            $name = "$v-$Prefix" + $TypeName
+            $filename = "$Path\$name.ps1"
+
             foreach ($Property in $Properties) {
                 if ($Property.PropertyType.Name -as [Type]) {
                     $type = $Property.PropertyType.Name
@@ -72,15 +53,12 @@ Function New-FunctionFromType {
                 }
                 Add-String -String "     [{0}]`${1},`n`n" -f $type, $Property.Name
             }
-            Add-String -String "
-    )
-}"
 
             if ($Passthru) {
                 $FunctionDefinition
             }
             else {
-                $FunctionDefinition | Set-Content -Path "$Path\$Name"
+                $FunctionDefinition | Set-Content -Path $filename
             }
         }
     }
