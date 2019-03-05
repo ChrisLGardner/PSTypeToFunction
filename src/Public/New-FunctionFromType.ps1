@@ -74,6 +74,9 @@ Exclude properties you don't want.
                 throw "Can't find $Template"
             }
         }
+        if ($Path -and -not (Test-Path -Path $Path)) {
+            $null = New-Item -ItemType Directory -Path $Path
+        }
     }
     process {
         if ($PSCmdlet.ParameterSetName -ne 'TypeName') {
