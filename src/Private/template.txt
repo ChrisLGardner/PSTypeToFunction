@@ -1,0 +1,12 @@
+function --name-- {
+    <#
+    --help--
+    #>
+    [CmdletBinding(SupportsShouldProcess, ConfirmImpact = '--confirmimpact--')]
+    param (
+        --params--
+    )
+    process {
+        --process--
+    }
+}
