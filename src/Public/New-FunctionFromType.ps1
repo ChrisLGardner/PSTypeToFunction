@@ -55,7 +55,7 @@ Function New-FunctionFromType {
     param (
         [ValidateSet('All', 'New', 'Remove', 'Get', 'Set')]
         [String[]]$Verb = "All",
-        [String]$Path = $PWD,
+        [Object]$Path = $PWD,
         [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'TypeName')]
         [String]$TypeName,
         [Parameter(Mandatory, ValueFromPipeline, ParameterSetName = 'Object')]
@@ -74,10 +74,10 @@ Function New-FunctionFromType {
         }
 
         if ($Template -eq "Default") {
-            $Template = Resolve-Path -Path "$script:PSModuleRoot\Private\template.txt"
+            $Template = Resolve-Path -Path "$script:PSModuleRoot\Template\default.txt"
         }
         elseif ($Template -eq "dbatools") {
-            $Template = Resolve-Path -Path "$script:PSModuleRoot\Private\template-dbatools.txt"
+            $Template = Resolve-Path -Path "$script:PSModuleRoot\Template\dbatools.txt"
         }
         else {
             if (-not (Test-Path -Path $Template)) {
@@ -104,12 +104,12 @@ Function New-FunctionFromType {
 
         foreach ($verbname in $Verb) {
             $text = Get-Content -Path $Template
-            $shortname = ($TypeName -split "\.")[-1]
-            $name = "$verbname-$Prefix" + $shortname
-            $text = $text.Replace("--name--", $name)
+            $shortTypeName = ($TypeName -split "\.")[-1]
+            $functionName = "$verbname-$Prefix" + $shortTypeName
+            $text = $text.Replace("--name--", $functionName)
             $text = $text.Replace("--confirmimpact--", $ConfirmImpact)
             $params = $help = $process = @()
-            $filename = "$Path\$name.ps1"
+            $filename = "$Path\$functionName.ps1"
 
             foreach ($Property in $Properties) {
                 $propertyname = $Property.Name
