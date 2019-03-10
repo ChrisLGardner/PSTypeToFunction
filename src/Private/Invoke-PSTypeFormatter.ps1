@@ -21,7 +21,7 @@ function Invoke-PSTypeFormatter {
     [CmdletBinding()]
     param (
         [parameter(Mandatory, ValueFromPipeline)]
-        [object[]]$Path
+        [System.IO.FileInfo[]]$Path
     )
     begin {
         $CBHRex = [regex]'(?smi)\s+<#[^#]*#>'
